@@ -1166,42 +1166,40 @@
         const queueCollectionRef = collection(firestore, 'orders', docId, 'queue');
         const queueQuerySnapshot = await getDocs(queueCollectionRef);
     
-        console.log("Queue Query Snapshot:", queueQuerySnapshot.docs);
+        // Find the document with status set to 'paid'
+        const paidOrder = queueQuerySnapshot.docs.find(doc => doc.data().status === 'paid');
     
-        queueQuerySnapshot.forEach(async (queueDoc) => {
-          console.log("Inside forEach loop");
-          const queueData = queueDoc.data();
-          console.log("Queue Data:", queueData);
-          if (queueData.status === 'paid') {
-            console.log('Queue Document ID:', queueDoc.id);
+        if (paidOrder) {
+          console.log('Paid Order Document ID:', paidOrder.id);
     
-            // Retrieve details subcollection for this queue document
-            const detailsCollectionRef = collection(firestore, 'orders', docId, 'queue', orderId, 'details');
-            const detailsQuerySnapshot = await getDocs(detailsCollectionRef);
+          // Retrieve details subcollection for the paid order
+          const detailsCollectionRef = collection(firestore, 'orders', docId, 'queue', orderId, 'details');
+          const detailsQuerySnapshot = await getDocs(detailsCollectionRef);
     
-            console.log('Details Query Snapshot:', detailsQuerySnapshot.docs);
+          console.log('Details Query Snapshot:', detailsQuerySnapshot.docs);
     
-            // Populate modal with details
-            detailsQuerySnapshot.forEach((doc) => {
-              const detailsData = doc.data();
-              console.log(detailsData);
-              const { dish, qty, total } = detailsData;
+          // Populate modal with details
+          detailsQuerySnapshot.forEach((doc) => {
+            const detailsData = doc.data();
+            console.log(detailsData);
+            const { dish, qty, total } = detailsData;
     
-              // Create a row for each detail item
-              const row = `
-                <tr>
-                  <td>${dish}</td>
-                  <td>${qty}</td>
-                  <td>${total}</td>
-                </tr>
-              `;
-              detailsModalBody.innerHTML += row;
-            });
-          }
-        });
+            // Create a row for each detail item
+            const row = `
+              <tr>
+                <td>${dish}</td>
+                <td>${qty}</td>
+                <td>${total}</td>
+              </tr>
+            `;
+            detailsModalBody.innerHTML += row;
+          });
     
-        // Show the details modal
-        $('#detailsModal').modal('show');
+          // Show the details modal
+          $('#detailsModal').modal('show');
+        } else {
+          console.log('No paid order found.');
+        }
       } catch (error) {
         console.error("Error displaying sales report details:", error);
       }
